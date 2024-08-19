@@ -1,7 +1,8 @@
+import { createBlogInput, updateBlogInput } from "@nagarajkj7/common-medium";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
-import {  verify } from "hono/jwt";
+import { verify } from "hono/jwt";
 const prisma = new PrismaClient().$extends(withAccelerate());
 
 export const blogRouter = new Hono<{
@@ -15,11 +16,10 @@ export const blogRouter = new Hono<{
 }>();
 
 blogRouter.use("/*", async (c, next) => {
-  
   const authHeader = c.req.header("authorization") || "";
   try {
     const user = await verify(authHeader, c.env.JWT_SECRET);
-    if (user && typeof user.id === 'string') {
+    if (user && typeof user.id === "string") {
       c.set("userId", user.id);
       await next();
     } else {
@@ -32,18 +32,24 @@ blogRouter.use("/*", async (c, next) => {
   }
 });
 
-
-
+// Create Blog
 
 blogRouter.post("/", async (c) => {
+  const body = await c.req.json();
+  const { success } = createBlogInput.safeParse(body);
+  if (!success) {
+    c.status(411);
+    return c.json({
+      messsage: "Inputs are incorrect",
+    });
+  }
+
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
-
-  const body = await c.req.json();
   const userId = c.get("userId");
 
-  if (typeof userId !== 'string') {
+  if (typeof userId !== "string") {
     c.status(400);
     return c.json({ message: "Invalid userId" });
   }
@@ -59,20 +65,28 @@ blogRouter.post("/", async (c) => {
   return c.json({ id: blog.id });
 });
 
-
-
-
-
+// Update Blog
 
 blogRouter.put("/", async (c) => {
+  const body = await c.req.json();
+  const { success } = updateBlogInput.safeParse(body);
+  if (!success) {
+    c.status(411);
+    return c.json({
+      messsage: "Inputs are incorrect",
+    });
+  }
+
+
+
+
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
 
-  const body = await c.req.json();
   const userId = c.get("userId");
 
-  if (typeof userId !== 'string') {
+  if (typeof userId !== "string") {
     c.status(400);
     return c.json({ message: "Invalid userId" });
   }
@@ -90,14 +104,14 @@ blogRouter.put("/", async (c) => {
 });
 
 blogRouter.get("/bulk", async (c) => {
-    const prisma = new PrismaClient({
-      datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate());
-  
-    const blogs = await prisma.post.findMany();
-  
-    return c.json({ blogs });
-  });
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+
+  const blogs = await prisma.post.findMany();
+
+  return c.json({ blogs });
+});
 
 blogRouter.get("/:id", async (c) => {
   const prisma = new PrismaClient({
@@ -119,5 +133,3 @@ blogRouter.get("/:id", async (c) => {
     });
   }
 });
-
-

@@ -1,0 +1,15 @@
+{
+  "name": "@nagarajkj7/common-medium",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "description": "",
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
